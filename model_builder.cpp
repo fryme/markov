@@ -2,17 +2,19 @@
 #include <string>
 #include <vector>
 #include <fstream>
-#include <fstream>
 #include <cwctype>
 #include <algorithm>
 #include <iterator>
 #include <list>
 #include "model.h"
 #include <boost\format.hpp>
+#include <boost\program_options.hpp>
 
 using namespace std;
+const wstring CurlPath = L"curl.exe";
 
-void PreprocessString(vector<wchar_t>& buffer)
+template<class T>
+void PreprocessString(vector<T>& buffer)
 {
 	size_t w = 0;
 	for (size_t i = 0; i < buffer.size() && w < buffer.size(); ++i, ++w)
@@ -54,26 +56,32 @@ vector<wchar_t> ReadFile(const wstring& fileName)
 	return result;
 }
 
+inline bool IsFileExists(const std::wstring& name) {
+	ifstream stream(name);
+	return stream.is_open();
+}
+
 vector<wchar_t> DownloadUrl(const wstring& url)
 {
-	wstring curlPath = L"C:\\github\\markov\\curl.exe";
+	if (!IsFileExists(CurlPath))
+		throw runtime_error("curl.exe not exists");
 
 	FILE* fp;
-	if ((fp = _wpopen((boost::wformat(L"\"%1%\" --url %2%") % curlPath % url).str().c_str(), L"rt")) == NULL)
-		exit(1);
-	
-	fseek(fp, 0, SEEK_END); // seek to end of file
-	auto size = ftell(fp); // get current file pointer
-	fseek(fp, 0, SEEK_SET); // seek back to beginning of file
+	if ((fp = _wpopen((boost::wformat(L"\"%1%\" --url %2%") % CurlPath % url).str().c_str(), L"rt")) == NULL)
+		throw runtime_error("can't download file");
 
-	const uint32_t BufferSize = 1024;
+	const uint32_t BufferSize = 1024 * 100; // 100 kb
 	vector<char> buffer(BufferSize, 0);
 	vector<wchar_t> result;
 	result.reserve(BufferSize);
 	size_t readed = 0;
+
 	while (true)
 	{
-		readed = std::fread(&buffer[0], sizeof buffer[0], buffer.size(), fp);
+		readed = fread(&buffer[0], sizeof buffer[0], buffer.size(), fp);
+		PreprocessString(buffer);
+		if (readed < BufferSize)
+			buffer.resize(readed);
 		copy(buffer.begin(), buffer.end(), back_inserter(result));
 		if (readed != BufferSize)
 			break;
@@ -98,34 +106,67 @@ void ReadFiles(MarkovChainModel& completeModel)
 	}
 }
 
-int main()
+void ReadLinks(const string& filePath, list<wstring>& links)
 {
-	uint32_t n = 2; // chain order
-	//list<wstring> links = { L"ftp://geek@localhost/medium_en.txt"};
-	list<wstring> links = { L"ftp://geek@localhost/medium.txt" };
-	wstring pathToResultModel(L"C:\\github\\markov\\Debug\\model.txt");
+	wifstream stream(filePath/*, std::ifstream::ate*/);
+	if (!stream.is_open())
+		throw std::runtime_error("file not open");
 	
+	wstring line;
+	while (std::getline(stream, line))
+		links.push_back(line);
+}
+
+int main(int argc, char** argv)
+{
+	namespace po = boost::program_options;
+	po::options_description description("Allowed options");
+	description.add_options()("order", po::value<uint32_t>(), "order of model")
+							 ("urls", po::value<string>(), "path to txt file with links to download")
+							 ("out", po::value<string>(), "path to file of result model");
+
+	po::variables_map vm;
+	po::store(po::parse_command_line(argc, argv, description), vm);
+	po::notify(vm);
+
+	if (vm.count("help") || vm["order"].empty() || vm["urls"].empty() || vm["out"].empty()) 
+	{
+		cout << description << endl;
+		return 1;
+	}
+
+	uint32_t order = vm["order"].as<uint32_t>();
+	string pathToResultModel(vm["out"].as<string>());
+
 	try
 	{
-		MarkovChainModel completeModel(n);
+		list<wstring> links;
+		ReadLinks(vm["urls"].as<string>(), links);
+
+		if (links.empty())
+			throw runtime_error("No links");
+
+		MarkovChainModel completeModel(order);
 		
 		while (!links.empty())
 		{
 			auto link = links.back();
 			links.pop_back();
-			MarkovChainModel tempModel(n);
+			MarkovChainModel tempModel(order);
 			tempModel.CreateModel(DownloadUrl(link));
+			wcout << "Model for link: " << link << "created with size: " << tempModel.GetSize() << endl;
 			completeModel.Merge(tempModel);
+			cout << "Total size after merge: " << completeModel.GetSize() << endl;
 		}
 
-		completeModel.Save(pathToResultModel);
-		MarkovChainModel mm(n);
-		mm.Load(pathToResultModel);
-		bool isEqual = (mm == completeModel);
+		cout << "Model saved to file: " << pathToResultModel << " file size: " << completeModel.Save(pathToResultModel);
+
 	}
 	catch (std::exception& e)
 	{
 		cout << "Fail: " << e.what();
+		return 1;
 	}
+
 	return 0;
 }

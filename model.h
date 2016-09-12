@@ -61,12 +61,17 @@ private:
 
 class MarkovChainModel
 {
-	typedef unordered_map<wstring, forward_list<wstring>> Chain;
+	typedef map<wstring, forward_list<wstring>> Chain;
 	Chain m_chain;
 
 public:
 	MarkovChainModel(uint32_t n) : m_order(n) 
 	{}
+
+	size_t GetSize()
+	{
+		return m_chain.size();
+	}
 
 	void CreateModel(vector<wchar_t>& text)
 	{
@@ -147,7 +152,7 @@ public:
 		return true;
 	}
 
-	bool Save(const wstring& filePath)
+	size_t Save(const string& filePath)
 	{
 		wofstream stream;
 		stream.open(filePath);
@@ -160,6 +165,10 @@ public:
 			stream << boost::join(value.second, " ");
 			stream << endl;
 		}
+		stream.flush();
+		stream.seekp(ios::beg);
+		stream.seekp(ios::end);
+		return stream.tellp();
 	}
 
 	bool operator== (const MarkovChainModel& model)
