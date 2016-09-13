@@ -80,7 +80,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Program Files\boost\boost_1_61_0\boost\bin.v2\libs\serialization\build\msvc-14.0\debug\threading-multi;C:\Program Files\boost\boost_1_61_0\boost\bin.v2\libs\program_options\build\msvc-14.0\debug\link-static\threading-multi;C:\Program Files\boost\boost_1_60_0\boost\bin.v2\libs\program_options\build\msvc-14.0\debug\link-static\threading-multi;C:\Program Files\boost\boost_1_61_0\boost\bin.v2\libs\program_options\build\msvc-14.0\debug\link-static;C:\Program Files\boost\boost_1_60_0\boost\bin.v2\libs\program_options\build\msvc-14.0\debug\link-static</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;libboost_program_options-vc140-gd-1_61.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;libboost_program_options-vc140-gd-1_60.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -123,9 +123,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="model.cpp" />
     <ClCompile Include="model_builder.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="common.h" />
     <ClInclude Include="downloader.h" />
     <ClInclude Include="model.h" />
   </ItemGroup>

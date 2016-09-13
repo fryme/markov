@@ -77,6 +77,10 @@
       <AdditionalIncludeDirectories>C:\Program Files\boost\boost_1_61_0\;C:\Program Files\boost\boost_1_60_0\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_MBCS;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>libboost_program_options-vc140-gd-1_60.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\boost\boost_1_61_0\boost\bin.v2\libs\serialization\build\msvc-14.0\debug\threading-multi;C:\Program Files\boost\boost_1_61_0\boost\bin.v2\libs\program_options\build\msvc-14.0\debug\link-static\threading-multi;C:\Program Files\boost\boost_1_60_0\boost\bin.v2\libs\program_options\build\msvc-14.0\debug\link-static\threading-multi;C:\Program Files\boost\boost_1_61_0\boost\bin.v2\libs\program_options\build\msvc-14.0\debug\link-static;C:\Program Files\boost\boost_1_60_0\boost\bin.v2\libs\program_options\build\msvc-14.0\debug\link-static</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -92,6 +96,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\Program Files\boost\boost_1_61_0\;C:\Program Files\boost\boost_1_60_0\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -112,6 +117,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\model.cpp" />
     <ClCompile Include="text_generator.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
