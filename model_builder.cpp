@@ -11,21 +11,23 @@
 #include <boost\program_options.hpp>
 
 using namespace std;
-const wstring CurlPath = L"curl.exe";
+const wstring CurlPath = L"C:\\github\\markov\\markov\\Release\\curl.exe";
 
-template<class T>
-void PreprocessString(vector<T>& buffer)
+template<class T, class T2>
+void PreprocessString(vector<T>& buffer, vector<T2>& result)
 {
-	size_t w = 0;
-	for (size_t i = 0; i < buffer.size() && w < buffer.size(); ++i, ++w)
+	for (size_t i = 0; i < buffer.size() ; ++i)
 	{
-		if (buffer[w] == '\'')
+		if (buffer[i] == '\'' || iswspace(buffer[i])) 
+		{
+			result.push_back(buffer[i]);
 			continue;
+		}
 
-		if (!std::iswpunct(buffer[w]))
-			buffer[i] = std::towlower(buffer[w]);
-		else
-			buffer[i] = L' ';
+		if (std::iswupper(buffer[i]))
+			result.push_back(towlower(buffer[i]));
+		else if (iswlower(buffer[i]))
+			result.push_back(buffer[i]);
 	}
 }
 
@@ -47,7 +49,7 @@ vector<wchar_t> ReadFile(const wstring& fileName)
 	while (true)
 	{
 		stream.read(&buffer[0], buffer.size());
-		PreprocessString(buffer);
+		//PreprocessString(buffer);
 		copy(buffer.begin(), buffer.end(), back_inserter(result));
 
 		if (stream.fail())
@@ -63,11 +65,8 @@ inline bool IsFileExists(const std::wstring& name) {
 
 vector<wchar_t> DownloadUrl(const wstring& url)
 {
-	if (!IsFileExists(CurlPath))
-		throw runtime_error("curl.exe not exists");
-
 	FILE* fp;
-	if ((fp = _wpopen((boost::wformat(L"\"%1%\" --url %2%") % CurlPath % url).str().c_str(), L"rt")) == NULL)
+	if ((fp = _wpopen((boost::wformat(L"\"%1%\" -s --url %2%") % CurlPath % url).str().c_str(), L"rt")) == NULL)
 		throw runtime_error("can't download file");
 
 	const uint32_t BufferSize = 1024 * 100; // 100 kb
@@ -79,14 +78,16 @@ vector<wchar_t> DownloadUrl(const wstring& url)
 	while (true)
 	{
 		readed = fread(&buffer[0], sizeof buffer[0], buffer.size(), fp);
-		PreprocessString(buffer);
 		if (readed < BufferSize)
 			buffer.resize(readed);
-		copy(buffer.begin(), buffer.end(), back_inserter(result));
+
+		PreprocessString(buffer, result);
+
 		if (readed != BufferSize)
 			break;
 	}
 	
+	_pclose(fp);
 	return result;
 }
 
@@ -146,19 +147,31 @@ int main(int argc, char** argv)
 		if (links.empty())
 			throw runtime_error("No links");
 
+		if (!IsFileExists(CurlPath))
+			throw runtime_error("curl.exe not exists");
+
 		MarkovChainModel completeModel(order);
 		
 		while (!links.empty())
 		{
 			auto link = links.back();
 			links.pop_back();
-			MarkovChainModel tempModel(order);
-			tempModel.CreateModel(DownloadUrl(link));
-			wcout << "Model for link: " << link << "created with size: " << tempModel.GetSize() << endl;
-			completeModel.Merge(tempModel);
-			cout << "Total size after merge: " << completeModel.GetSize() << endl;
+			try
+			{
+				MarkovChainModel tempModel(order);
+				if (tempModel.CreateModel(DownloadUrl(link)))
+				{
+					wcout << "Model for link: " << link << " created with size: " << tempModel.GetSize() << endl;
+					completeModel.Merge(tempModel);
+					wcout << "Total size after merge: " << completeModel.GetSize() << endl;
+				}
+			}
+			catch (std::exception& e)
+			{
+				wcout << "Failed download link: " << link <<" error: " << e.what() << endl;
+			}
 		}
-
+		
 		cout << "Model saved to file: " << pathToResultModel << " file size: " << completeModel.Save(pathToResultModel);
 
 	}
