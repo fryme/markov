@@ -17,9 +17,7 @@ void PreprocessString(vector<T>& buffer, vector<T2>& result)
 		else if (iswlower(buffer[i]))
 			result.push_back(buffer[i]);
 		else if (buffer[i] == '\'' || iswspace(buffer[i]))
-		{
 			result.push_back(buffer[i]);
-		}
 	}
 }
 
@@ -31,7 +29,7 @@ vector<wchar_t> DownloadUrl(const wstring& url)
 	deleted_unique_ptr<FILE> file(_wpopen((boost::wformat(L"\"%1%\" -s --url %2%") % CurlPath % url).str().c_str(), L"rt"), 
 		[] (FILE* fp) { _pclose(fp); });
 	
-	Check(file.get() == NULL, "Can't download file from url");
+	Check(file.get() == NULL, "Can't download url");
 
 	vector<char> buffer(BufferSize, 0);
 	vector<wchar_t> result;
@@ -55,8 +53,11 @@ vector<wchar_t> DownloadUrl(const wstring& url)
 
 void ReadLinks(const string& filePath, list<wstring>& links)
 {
+	if (filePath.empty())
+		return;
+
 	wifstream stream(filePath);
-	Check(!stream.is_open(), "file not open");
+	Check(!stream.is_open(), (boost::format("Can't open file: %1%") % filePath).str());
 	
 	wstring line;
 	while (std::getline(stream, line))
@@ -109,9 +110,9 @@ int main(int argc, char** argv)
 					wcout << "After merge: " << completeModel.GetSize() << endl;
 				}
 			}
-			catch (std::exception& e)
+			catch (exception& e)
 			{
-				wcout << "Download error: " << link <<" error: " << e.what() << endl;
+				wcout << "Download error: " << link <<", error: " << e.what() << endl;
 			}
 		}
 		cout << "All urls downloaded, saving model to file" << endl;

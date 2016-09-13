@@ -90,7 +90,7 @@ bool MarkovChainModel::Load(const wstring& filePath, bool fullLoad)
 	return true;
 }
 
-void MarkovChainModel::Save(const string& filePath)
+void MarkovChainModel::Save(const string& filePath) const
 {
 	wofstream stream;
 	stream.open(filePath);
@@ -122,7 +122,7 @@ MarkovChainView::MarkovChainView(string filePath, uint32_t order)
 
 bool MarkovChainView::GetNextWord(const wstring& key, wstring& word)
 {
-	Chain::iterator it = m_chain.find(key);
+	Chain::const_iterator it = m_chain.find(key);
 	if (it != m_chain.end())
 	{
 		word = GetRandomWord((MarkovChainModel::ChainValue)*it);
@@ -142,7 +142,7 @@ bool MarkovChainView::GetNextWord(const wstring& key, wstring& word)
 	return false;
 }
 	
-wstring MarkovChainView::GetRandomWord(ChainValue& value)
+wstring MarkovChainView::GetRandomWord(ChainValue& value) const
 {
 	const auto& list = value.second;
 	size_t size = distance(list.begin(), list.end());

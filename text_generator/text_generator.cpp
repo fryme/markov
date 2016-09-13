@@ -69,6 +69,7 @@ int main(int argc, char** argv)
 	catch (exception& e)
 	{
 		cout << "Fail: " << e.what() << endl;
+		return 1;
 	}
 
 	return 0;

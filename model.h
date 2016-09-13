@@ -43,14 +43,14 @@ public:
 	bool CreateModel(vector<wchar_t>& text);
 	void Merge(const MarkovChainModel& otherModel);
 	bool Load(const wstring& filePath, bool fullLoad = false);
-	void Save(const string& filePath);
+	void Save(const string& filePath) const;
 
-	bool operator== (const MarkovChainModel& model)
+	bool operator== (const MarkovChainModel& model) const
 	{
 		return m_order == model.m_order && m_chain == model.m_chain;
 	}
 
-	size_t GetSize()
+	size_t GetSize() const
 	{
 		return m_chain.size();
 	}
@@ -70,7 +70,7 @@ public:
 	bool GetNextWord(const wstring& key, wstring& word);
 	
 private:
-	wstring GetRandomWord(ChainValue& value);
+	wstring GetRandomWord(ChainValue& value) const;
 	bool SearchKey(const wstring& key, uint32_t l, uint32_t r, ChainValue& result);
 	void GetLine(uint32_t pos, wstring& line);
 	void SplitLine(const wstring& line, ChainValue& result);
